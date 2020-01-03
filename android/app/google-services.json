@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "276358187159",
+    "firebase_url": "https://seabattlenutn.firebaseio.com",
+    "project_id": "seabattlenutn",
+    "storage_bucket": "seabattlenutn.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:276358187159:android:0f13c4a6a78e5b418281d2",
+        "android_client_info": {
+          "package_name": "com.example.sea_battle_nutn"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "276358187159-2qacgq3qpvabma88sqn334siff4tq793.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sea_battle_nutn",
+            "certificate_hash": "e1728bc0624abe737e4cf5af04cb5538fb769bdd"
+          }
+        },
+        {
+          "client_id": "276358187159-2iljs73ji4ka196ph8pddg9mqpacbeig.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBRJTXU2urSkuhCYKIc4lAj5eUJB9bWrDQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "276358187159-2iljs73ji4ka196ph8pddg9mqpacbeig.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
