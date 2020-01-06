@@ -38,12 +38,9 @@ class _FleetFormingState extends State<FleetForming> {
     return true;
   }
 
-  @override
-  void dispose() { 
+  void finish() {
     eventBus.fire(FleetChangeEvent(widget._widgetFleet));
     eventBus.fire(StepChangerEvent(4));
-
-    super.dispose();
   }
 
   @override
@@ -99,8 +96,7 @@ class _FleetFormingState extends State<FleetForming> {
               }))),
       OutlineButton(
         child: Text("Finish"),
-        onPressed:
-            isCannotFinish() ? null : dispose,
+        onPressed: isCannotFinish() ? null : finish,
       )
     ]);
   }
