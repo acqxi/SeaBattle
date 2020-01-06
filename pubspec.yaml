@@ -29,6 +29,7 @@ dependencies:
   firebase_core:            # This dependency was added during initial configuration.
   #firebase_analytics:       # add dependency for Google Analytics for Firebase
 
+  event_bus :
   
 
 dev_dependencies:
