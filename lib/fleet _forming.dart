@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sea_battle_nutn/battle_event.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
 
@@ -13,7 +14,7 @@ class FleetForming extends StatefulWidget {
 
 class _FleetFormingState extends State<FleetForming> {
   final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
-  final _allowableAreaOfShipHoldList = [0, 30, 32, 64];
+  final _allowableAreaOfShipHoldList = [0, 32, 34, 64];
 
   @override
   void initState() {
@@ -35,6 +36,14 @@ class _FleetFormingState extends State<FleetForming> {
     if (widget._widgetFleet.howMuchAreaIsHeld() ==
         _allowableAreaOfShipHoldList[widget._player]) return false;
     return true;
+  }
+
+  @override
+  void dispose() { 
+    eventBus.fire(FleetChangeEvent(widget._widgetFleet));
+    eventBus.fire(StepChangerEvent(4));
+
+    super.dispose();
   }
 
   @override
@@ -60,6 +69,8 @@ class _FleetFormingState extends State<FleetForming> {
                           ),
                           IconButton(
                             icon: Icon(Icons.remove),
+                            color: Colors.green[600],
+                            disabledColor: Colors.grey[300],
                             onPressed: widget._widgetFleet
                                         .howMuchShipFormed()[index] <
                                     2
@@ -75,6 +86,8 @@ class _FleetFormingState extends State<FleetForming> {
                           ),
                           IconButton(
                             icon: Icon(Icons.add),
+                            color: Colors.green[600],
+                            disabledColor: Colors.grey[300],
                             onPressed: isCannotPlus(index)
                                 ? null
                                 : () => this.setState(() {
@@ -87,7 +100,7 @@ class _FleetFormingState extends State<FleetForming> {
       OutlineButton(
         child: Text("Finish"),
         onPressed:
-            isCannotFinish() ? null : widget._widgetFleet.updateWholeFleetData,
+            isCannotFinish() ? null : dispose,
       )
     ]);
   }

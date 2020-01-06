@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
             children: <Widget>[
               OutlineButton(
                 child: Text(_playerName[_player]),
-                onPressed: startCBattle,
+                onPressed: _stepOrdinal != 0 ? null : startCBattle,
               )
             ],
           ),
@@ -147,6 +147,7 @@ class _HomePageState extends State<HomePage> {
         [
           Container(),
           FleetForming(_fleet, _stepOrdinal),
+          Text("4")
           //Embattle(),
           //SeaWarfare()
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
