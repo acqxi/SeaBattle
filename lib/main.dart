@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
           fireBaseDB
               .child("PlayerState")
               .set({"Sente": "unuse", "Gote": "unuse", "Turn": "notStart"})
-              .whenComplete(() => print("finish set"))
+              .whenComplete(() => print("finish set init player state"))
               .catchError((error) => print(error));
     }).catchError((error) => print(error));
     super.initState();
@@ -114,6 +114,9 @@ class _HomePageState extends State<HomePage> {
             _player = 2;
           else
             _player = 3;
+
+          _fleet.setOwner(_player);
+          print(_fleet.getOwnerName());
 
           fireBaseDB
               .child("PlayerState")
@@ -143,10 +146,10 @@ class _HomePageState extends State<HomePage> {
         ),
         [
           Container(),
-          FleetForming(_fleet),
+          FleetForming(_fleet, _stepOrdinal),
           //Embattle(),
           //SeaWarfare()
-        ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 3))],
+        ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
     );
   }

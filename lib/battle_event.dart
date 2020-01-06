@@ -1,11 +1,12 @@
 import 'package:event_bus/event_bus.dart';
+import 'package:sea_battle_nutn/fleet_state.dart';
 
 EventBus eventBus = new EventBus();
 
-class ShipNumberUpdateEvent{
-  List<int> shipNumberList;
+class FleetChangeEvent{
+  Fleet fleet;
 
-  ShipNumberUpdateEvent(this.shipNumberList);
+  FleetChangeEvent(this.fleet);
 }
 
 class StepChangerEvent{

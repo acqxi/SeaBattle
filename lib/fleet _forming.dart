@@ -3,52 +3,91 @@ import 'package:sea_battle_nutn/fleet_state.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
 
 class FleetForming extends StatefulWidget {
-  final _widgetFleet;
-  FleetForming(Fleet this._widgetFleet, {Key key}) : super(key: key);
+  final int _player;
+  final Fleet _widgetFleet;
+  FleetForming(this._widgetFleet, this._player, {Key key}) : super(key: key);
 
   @override
   _FleetFormingState createState() => _FleetFormingState();
 }
 
 class _FleetFormingState extends State<FleetForming> {
-  var _numShip = [1, 1, 1, 1, 1]; //CV 6 BB 4 CA 3 CL 2 DD 1
-  var _nameShip = ['CV', 'BB', 'CA', 'CL', 'DD'];
+  final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
+  final _allowableAreaOfShipHoldList = [0, 30, 32, 64];
 
   @override
   void initState() {
+    for (var x in [0, 1, 2, 3, 4]) widget._widgetFleet.addShip(new Ship(x));
     super.initState();
+  }
+
+  bool isCannotPlus(index) {
+    if ((widget._widgetFleet.howMuchAreaIsHeld() >
+        (_allowableAreaOfShipHoldList[widget._player] -
+            Ship(index).getShipPower()))) return true;
+    if ((index == 4 && widget._widgetFleet.howMuchShipFormed()[index] > 4))
+      return true;
+    return false;
+  }
+
+  bool isCannotFinish() {
+    if (widget._player == 3) return false;
+    if (widget._widgetFleet.howMuchAreaIsHeld() ==
+        _allowableAreaOfShipHoldList[widget._player]) return false;
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(children: <Widget>[
       Container(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List<Widget>.generate(5, (index) {
-            return Container(
-                padding: EdgeInsets.all(5),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(Icons.exposure_plus_1),
-                      onPressed: () {},
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.exposure_neg_1),
-                      onPressed: () {},
-                    ),
-                    Text(_numShip[index].toString()),
-                    Text(_nameShip[index])
-                  ],
-                ));
-          }),
-        ),
-      ),
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List<Widget>.generate(5, (index) {
+                return Container(
+                    padding: EdgeInsets.all(5),
+                    child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            constraints: BoxConstraints(minWidth: 40),
+                            margin: EdgeInsets.only(right: 12),
+                            alignment: Alignment.center,
+                            child: Text(
+                              _shipTypeNameList[index],
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.remove),
+                            onPressed: widget._widgetFleet
+                                        .howMuchShipFormed()[index] <
+                                    2
+                                ? null
+                                : () => this.setState(
+                                    () => widget._widgetFleet.popShip(index)),
+                          ),
+                          Text(
+                            widget._widgetFleet
+                                .howMuchShipFormed()[index]
+                                .toString(),
+                            style: TextStyle(fontSize: 30),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.add),
+                            onPressed: isCannotPlus(index)
+                                ? null
+                                : () => this.setState(() {
+                                      widget._widgetFleet
+                                          .addShip(new Ship(index));
+                                    }),
+                          )
+                        ]));
+              }))),
       OutlineButton(
         child: Text("Finish"),
-        onPressed: null,
+        onPressed:
+            isCannotFinish() ? null : widget._widgetFleet.updateWholeFleetData,
       )
     ]);
   }

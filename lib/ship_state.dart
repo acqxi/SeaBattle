@@ -17,6 +17,7 @@ class TwoPosition {
 class Ship {
   final int shipType;
 
+  final _shipPower = [6, 4, 3, 2, 1];
   final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
   final _shipstateNameList = ["yet", "intact", "deform", "wrecked"];
   final _directionString = [
@@ -50,17 +51,23 @@ class Ship {
     "[-1, -1]"
   ];
 
-  var _position = new TwoPosition();
-  var _shipState = 0;
-  var _damagedPart = [0, 0, 0, 0, 0];
+  TwoPosition _position;
+  int _shipState;
+  List<int> _damagedPart;
 
-  List<List<SinglePosition>> _torpedoPossiblePath;
+  //List<List<SinglePosition>> _torpedoPossiblePath;
 
-  Ship(this.shipType, [this._position, this._shipState, this._damagedPart]);
+  Ship(this.shipType,
+      [this._position = const TwoPosition(),
+      this._shipState = 0,
+      this._damagedPart = const [0, 0, 0, 0, 0]]);
 
-  TwoPosition position() => _position;
-  String shipTypeName() => _shipTypeNameList[shipType];
-  String shipstateName() => _shipstateNameList[_shipState];
+  TwoPosition getPosition() => _position;
+  String getShipTypeName() => _shipTypeNameList[shipType];
+  String getShipStateName() => _shipstateNameList[_shipState];
+  int getShipPower() => _shipPower[shipType];
+  List<int> getShipPowerList() => _shipPower;
+  String getDamagedPart2String() => _damagedPart.join();
 
   TwoPosition setPosition(TwoPosition newPosition) => _position = newPosition;
   int changeShipState(int newShipState) => _shipState = newShipState;
