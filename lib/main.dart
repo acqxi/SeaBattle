@@ -552,18 +552,19 @@ class _ChooseShipState extends State<ChooseShip> {
   bool isFit() => totalGridOfShips() == 32 && !_isChooseShipButtonDisable;
 
   void sendDataAndStartLayout() {
-    final Map<String, Map<String, Map<String, String>>> data = {};
-    final Map<String, String> bigShipState = {
+    final Map<String,Object> data = {};
+    final  bigShipState = {
       "liveState": "notOnBattle",
-      "pos1": "0",
-      "pos2": "0"
+      "pos1": {"x":"0"},
+      "pos2": {"y":"0"}
     };
-    final Map<String, String> smallShipState = {
+    final  smallShipState = {
       "liveState": "notOnBattle",
-      "pos1": "0"
+      "pos1": {"x":"0"}
     };
     for (var x = 0; x < _numShip.length; x++) {
-      final Map<String, Map<String, String>> temp = {};
+      final Map<String, Object> temp = {};
+      temp["num"] =  _numShip[x];
       for (var y = 0; y < _numShip[x]; y++) {
         temp[y.toString()] = x == 4 ? smallShipState : bigShipState;
       }
