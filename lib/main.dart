@@ -94,6 +94,10 @@ class _HomePageState extends State<HomePage> {
 
     eventBus.on<StepChangerEvent>().listen((StepChangerEvent data) =>
         this.setState(() => _stepOrdinal = data.stepOrdinal));
+
+    eventBus
+        .on<FleetChangeEvent>()
+        .listen((FleetChangeEvent data) => _fleet = data.fleet);
   }
 
   void startCBattle() {
