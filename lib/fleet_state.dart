@@ -7,31 +7,73 @@ class Fleet {
 
   int _owner;
 
-  List<List<Ship>> _fleet = [[], [], [], [], []];
+  List<List<Ship>> _fleetShips = [[], [], [], [], []];
 
-  Fleet([this._owner=0]);
+  Fleet([this._owner = 0]);
 
   List<int> howMuchShipFormed() =>
-      List<int>.generate(5, (x) => _fleet[x].length);
+      List<int>.generate(5, (x) => _fleetShips[x].length);
 
   int howMuchAreaIsHeld() {
     var temp = 0;
-    _fleet
+    _fleetShips
         .asMap()
         .forEach((index, value) => temp += value.length * _shipPower[index]);
     return temp;
   }
 
-  void addShip(Ship newShip) => _fleet[newShip.shipType].add(newShip);
-  void popShip(int shipType) => _fleet[shipType].removeLast();
+  void addShip(Ship newShip) => _fleetShips[newShip.shipType].add(newShip);
+  void popShip(int shipType) => _fleetShips[shipType].removeLast();
 
   void setOwner(int owner) => _owner = owner;
 
-  String getOwnerName()=>_ownerName[_owner];
+  List<int> getYetShips() {
+    List<int> temp = [];
+    for (var i in _fleetShips.asMap().values) {
+      var tem = 0;
+      for (var j in i.asMap().values) {
+        tem += j.isYet() ? 1 : 0;
+      }
+      temp.add(tem);
+    }
+
+    return temp;
+  }
+
+  void setSpecificTypeShipWhichIsYet(Ship ship) {
+    for (var index in _fleetShips[ship.shipType].asMap().keys) {
+      print(_fleetShips[ship.shipType][index].getShipStateName() + "  old one");
+      if (_fleetShips[ship.shipType][index].getShipStateName() == "yet") {
+        _fleetShips[ship.shipType][index] = ship;
+
+        print("copy " +
+            _fleetShips[ship.shipType][index].getShipStateName() +
+            "\n ori" +
+            ship.getShipStateName());
+        break;
+      }
+    }
+  }
+
+  bool isWholeFleetIntact() {
+    var temp = 0;
+    _fleetShips.forEach(
+        (type) => type.forEach((ship) => temp += ship.isIntact() ? 0 : 1));
+    return temp == 0 ? true : false;
+  }
+
+  String getOwnerName() => _ownerName[_owner];
+
+  void resetPlace(){
+    _fleetShips.forEach((x)=>x.forEach((s){
+      s.setPosition(new TwoPosition());
+      s.changeShipState(0);
+    }));
+  }
 
   void updateWholeFleetData() {
     Map<String, Map<String, Object>> temp = {};
-    _fleet.asMap().forEach((index, singleTypeShips) {
+    _fleetShips.asMap().forEach((index, singleTypeShips) {
       temp[Ship(index).getShipTypeName()] = {
         "num": singleTypeShips.length.toString()
       };

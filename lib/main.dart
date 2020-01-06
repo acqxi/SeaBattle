@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:sea_battle_nutn/battle_event.dart';
+import 'package:sea_battle_nutn/embattle.dart';
 import 'package:sea_battle_nutn/fleet%20_forming.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
 
@@ -147,8 +148,7 @@ class _HomePageState extends State<HomePage> {
         [
           Container(),
           FleetForming(_fleet, _stepOrdinal),
-          Text("4")
-          //Embattle(),
+          Embattle(_fleet),
           //SeaWarfare()
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
