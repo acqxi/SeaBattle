@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter/material.dart';
-
 class SinglePosition {
   final int x;
   final int y;
