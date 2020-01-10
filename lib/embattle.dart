@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sea_battle_nutn/battle_event.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
 import 'package:sea_battle_nutn/territorial_sea.dart';
@@ -76,6 +77,13 @@ class _EmbattleState extends State<Embattle> {
     _someoneUsingFunction = false;
   }
 
+  void finish(){
+    _terState.updateFleet();
+    eventBus.fire(FleetChangeEvent(widget._wFleet));
+    eventBus.fire(TerritorialSeaChangeEvent(_terState));
+    eventBus.fire(StepChangerEvent(5));
+  }
+
   @override
   Widget build(BuildContext context) {
     _queryData = MediaQuery.of(context);
@@ -97,7 +105,7 @@ class _EmbattleState extends State<Embattle> {
                       ),
                       OutlineButton(
                         child: Text("upDate"),
-                        onPressed: _terState.updateFleet,
+                        onPressed: finish,
                       )
                     ],
                   ),

@@ -1,10 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:sea_battle_nutn/SeaWarfare.dart';
 import 'package:sea_battle_nutn/battle_event.dart';
 import 'package:sea_battle_nutn/embattle.dart';
 import 'package:sea_battle_nutn/fleet%20_forming.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
+import 'package:sea_battle_nutn/territorial_sea.dart';
 
 final DatabaseReference fireBaseDB = FirebaseDatabase.instance.reference();
 
@@ -77,6 +78,7 @@ class _HomePageState extends State<HomePage> {
   var _stepOrdinal = 0;
   var _player = 0;
   var _fleet = Fleet();
+  var _terri = TerritorialSea();
 
   final _playerName = ["Start", "Sente", "Gote", "Onlooker"];
 
@@ -99,6 +101,10 @@ class _HomePageState extends State<HomePage> {
     eventBus
         .on<FleetChangeEvent>()
         .listen((FleetChangeEvent data) => _fleet = data.fleet);
+
+    eventBus
+        .on<TerritorialSeaChangeEvent>()
+        .listen((TerritorialSeaChangeEvent data) => _terri = data.ter);
   }
 
   void startCBattle() {
@@ -149,7 +155,7 @@ class _HomePageState extends State<HomePage> {
           Container(),
           FleetForming(_fleet, _stepOrdinal),
           Embattle(_fleet),
-          //SeaWarfare()
+          SeaWarfare(_terri)
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
     );

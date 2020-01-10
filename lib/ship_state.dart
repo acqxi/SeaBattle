@@ -4,6 +4,12 @@ class SinglePosition {
   final int x;
   final int y;
   const SinglePosition([this.x = 0, this.y = 0]);
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "( " + x.toString() + ", " + y.toString() +" )"; 
+  }
 }
 
 class TwoPosition {
@@ -12,6 +18,12 @@ class TwoPosition {
   const TwoPosition(
       [this.position1 = const SinglePosition(),
       this.position2 = const SinglePosition()]);
+
+  @override
+  String toString() {
+    // TODO: implement toString
+    return "{ pos1 : " + position1.toString() + ", Pos2 : "+position2.toString()+"}";
+  }
 }
 
 class Ship {
@@ -61,6 +73,8 @@ class Ship {
     [-3, -2]
   ];
 
+  int _name;
+
   TwoPosition _position;
   int _shipState;
   List<int> _damagedPart;
@@ -71,7 +85,8 @@ class Ship {
   Ship(this.shipType,
       [this._position = const TwoPosition(),
       this._shipState = 0,
-      this._damagedPart = const [0, 0, 0, 0, 0]]);
+      this._damagedPart = const [0, 0, 0, 0, 0],
+      this._name]);
 
   TwoPosition getPosition() => _position;
   String getShipTypeName() => _shipTypeNameList[shipType];
@@ -79,11 +94,15 @@ class Ship {
   int getShipPower() => _shipPower[shipType];
   List<int> getShipPowerList() => _shipPower;
   String getDamagedPart2String() => _damagedPart.join();
+  int getName() => _name;
+
+  void setName(int n) => _name = n;
 
   bool isDD() => shipType == 4 ? true : false;
   bool isCV() => shipType == 0 ? true : false;
   bool isIntact() => _shipState == 1 ? true : false;
   bool isYet() => _shipState == 0 ? true : false;
+  bool isWrecked() => _shipState == 3 ? true : false;
 
   TwoPosition setPosition(TwoPosition newPosition) => _position = newPosition;
   int changeShipState(int newShipState) => _shipState = newShipState;
@@ -149,8 +168,7 @@ class Ship {
           for (int j = 0; j != dy + (dy > 0 ? 1 : -1); j += dy > 0 ? 1 : -1) {
             shipBody.add(SinglePosition(
                 _position.position1.x + i, _position.position1.y + j));
-            print(
-                "Now add ${_position.position1.x + i} ${_position.position1.y + j} to Ship");
+            //print(                "Now add ${_position.position1.x + i} ${_position.position1.y + j} to Ship");
           }
       } else {
         var dx = _position.position2.x - _position.position1.x;
@@ -163,11 +181,15 @@ class Ship {
           shipBody.add(SinglePosition(
               _position.position1.x + _directionInt[dir][0] * i,
               _position.position1.y + _directionInt[dir][1] * i));
-          print(
-              "Now add ${_position.position1.x + _directionInt[dir][0] * i} ${_position.position1.y + _directionInt[dir][1] * i} to Ship");
+          //print(              "Now add ${_position.position1.x + _directionInt[dir][0] * i} ${_position.position1.y + _directionInt[dir][1] * i} to Ship");
         }
       }
     }
     return shipBody;
+  }
+
+  @override
+  String toString() {
+    return "shipType : "+this.getShipTypeName()+"\n shipPos : "+this.getPosition().toString()+"\n Damaged : "+this.getDamagedPart2String();
   }
 }

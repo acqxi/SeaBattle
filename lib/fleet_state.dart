@@ -4,6 +4,8 @@ import 'package:sea_battle_nutn/ship_state.dart';
 class Fleet {
   final _shipPower = Ship(0).getShipPowerList();
   final _ownerName = ["Start", "Sente", "Gote", "Onlooker"];
+  final _shipstateNameList = ["yet", "intact", "deform", "wrecked"];
+  final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
 
   int _owner;
 
@@ -22,10 +24,55 @@ class Fleet {
     return temp;
   }
 
-  void addShip(Ship newShip) => _fleetShips[newShip.shipType].add(newShip);
+  void importFleetData(Map data) {
+    data.forEach((indexString, typeShipsString) {
+      Map typeShipMap = typeShipsString;
+      //print(typeShipMap["num"].toString() + "typeShipMap[num]");
+      for (int i = 0; i < int.parse(typeShipMap["num"]); i++) {
+        //print(typeShipMap[i.toString()]);
+        //print(typeShipMap[i.toString()]["DamagedPart"].toString().split(''));
+        List<int> ktemp = [];
+        for (var k in typeShipMap[i.toString()]["DamagedPart"]
+            .toString()
+            .split('')) ktemp.add(int.parse(k));
+
+        //print(_shipTypeNameList.indexOf(indexString));
+        //print(ktemp);
+        _fleetShips[_shipTypeNameList.indexOf(indexString)].add(Ship(
+            _shipTypeNameList.indexOf(indexString),
+            TwoPosition(
+                SinglePosition(
+                    int.parse(typeShipMap[i.toString()]["Pos1"]["X"]),
+                    int.parse(typeShipMap[i.toString()]["Pos1"]["Y"])),
+                SinglePosition(
+                    int.parse(typeShipMap[i.toString()]["Pos2"]["X"]),
+                    int.parse(typeShipMap[i.toString()]["Pos2"]["Y"]))),
+            _shipstateNameList.indexOf(typeShipMap[i.toString()]["State"]),
+            ktemp,
+            i));
+        print("Fleet Import perfectly Okey");
+      }
+    });
+  }
+
+  List<Ship> torpedoShip() {
+    List<Ship> _torpedoShip = [];
+    for (var x in [2, 3, 4])
+      _fleetShips[x].forEach((ship) {
+        if (!ship.isWrecked()) _torpedoShip.add(ship);
+      });
+    return _torpedoShip;
+  }
+
+  void addShip(Ship newShip) {
+    newShip.setName(_fleetShips[newShip.shipType].length);
+    _fleetShips[newShip.shipType].add(newShip);
+  }
+
   void popShip(int shipType) => _fleetShips[shipType].removeLast();
 
   void setOwner(int owner) => _owner = owner;
+  String getOwner() => _ownerName[_owner];
 
   List<int> getYetShips() {
     List<int> temp = [];
@@ -40,16 +87,19 @@ class Fleet {
     return temp;
   }
 
+  List<Ship> getSigleTypeShips(int shipType) => _fleetShips[shipType];
+
   void setSpecificTypeShipWhichIsYet(Ship ship) {
     for (var index in _fleetShips[ship.shipType].asMap().keys) {
       print(_fleetShips[ship.shipType][index].getShipStateName() + "  old one");
       if (_fleetShips[ship.shipType][index].getShipStateName() == "yet") {
+        ship.setName(index);
         _fleetShips[ship.shipType][index] = ship;
 
-        print("copy " +
+        /*print("copy " +
             _fleetShips[ship.shipType][index].getShipStateName() +
             "\n ori" +
-            ship.getShipStateName());
+            ship.getShipStateName());*/
         break;
       }
     }
@@ -64,11 +114,11 @@ class Fleet {
 
   String getOwnerName() => _ownerName[_owner];
 
-  void resetPlace(){
-    _fleetShips.forEach((x)=>x.forEach((s){
-      s.setPosition(new TwoPosition());
-      s.changeShipState(0);
-    }));
+  void resetPlace() {
+    _fleetShips.forEach((x) => x.forEach((s) {
+          s.setPosition(new TwoPosition());
+          s.changeShipState(0);
+        }));
   }
 
   void updateWholeFleetData() {
@@ -94,7 +144,7 @@ class Fleet {
       });
     });
 
-    fireBaseDB.child("State/${_ownerName[_owner]}").set(temp).whenComplete(() {
+    fireBaseDB.child("State/${this.getOwner()}").set(temp).whenComplete(() {
       print("finish set");
     }).catchError((error) {
       print(error);

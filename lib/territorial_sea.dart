@@ -1,4 +1,6 @@
+import 'package:firebase_database/firebase_database.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
+import 'package:sea_battle_nutn/main.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
 
 class TerritorialSea {
@@ -13,6 +15,7 @@ class TerritorialSea {
     "CL": 6,
     "DD": 7
   };
+  final _ownerName = ["Start", "Sente", "Gote", "Onlooker"];
 
   Ship _buildingShip;
   bool _notHaveBuildingShip = true;
@@ -25,9 +28,57 @@ class TerritorialSea {
 
   List<int> getYetShipNumberinFleet() => _fleet.getYetShips();
 
-  void updateFleet() => _fleet.updateWholeFleetData();
+  String getOwner() => _fleet.getOwner();
 
-  void resetPlaceTer(){
+  void updateFleet() {
+    _fleet.updateWholeFleetData();
+    updateTeb();
+  }
+
+  void importTebData(String str,String ta) {
+    print("start $ta Teb import");
+    List tebData = str.split('');
+    print(tebData);
+    _terSeaMap = List<List<BoardCell>>.generate(8, (posX) {
+      return List<BoardCell>.generate(16, (posY) {
+        //print("$posX $posY : ${ tebData[posX * 16 + posY]}");
+        return BoardCell(SinglePosition(posX, posY), int.parse(tebData[posX * 16 + posY]));
+      });
+    });
+    print("Teb Safe");
+    _fleet = new Fleet();
+    _fleet.setOwner(_ownerName.indexOf(ta));
+    fireBaseDB
+        .child("State")
+        .once()
+        .then((DataSnapshot snapshot) {
+          Map fleetData = snapshot.value;
+          _fleet.importFleetData(fleetData[ta]);
+        })
+        .whenComplete(()=>print("Teb Fleet Imported"))
+        .catchError((e) => print(e));    
+  }
+
+  List<Ship> shipCanTorpedo()=>_fleet.torpedoShip();
+
+  List<Ship> getAllShipInFleet(){
+    List<Ship> ships = [];
+    for(var x in [0,1,2,3,4])
+      ships.addAll(_fleet.getSigleTypeShips(x));
+    return ships;
+  }
+
+  void updateTeb() {
+    String str = "";
+    for (var i in _terSeaMap) for (var j in i) str += (j._whatOnThis).toString();
+    fireBaseDB.child("Teb").update({_fleet.getOwner(): str}).whenComplete(() {
+      print("finish Teb set");
+    }).catchError((error) {
+      print(error);
+    });
+  }
+
+  void resetPlaceTer() {
     _fleet.resetPlace();
     _terSeaMap = List<List<BoardCell>>.generate(8, (posX) {
       return List<BoardCell>.generate(16, (posY) {
@@ -133,13 +184,15 @@ class TerritorialSea {
         return 0;
       }
     }
+    print("error");
+    return -2;
   }
 }
 
 class BoardCell {
   final SinglePosition _position;
   int _whatOnThis;
-
+  SinglePosition getPos ()=> _position;
   BoardCell(this._position, [this._whatOnThis = 0]);
   void changeState(int s) => _whatOnThis = s;
   bool isDefault() => _whatOnThis == 0 ? true : false;
