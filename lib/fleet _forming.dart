@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sea_battle_nutn/basic_class.dart';
 import 'package:sea_battle_nutn/battle_event.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
@@ -14,18 +15,18 @@ class FleetForming extends StatefulWidget {
 
 class _FleetFormingState extends State<FleetForming> {
   final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
-  final _allowableAreaOfShipHoldList = [0, 32, 34, 64];
+  final _allowableAreaOfShipHoldList = [0, 20, 22, 40];
 
   @override
   void initState() {
-    for (var x in [0, 1, 2, 3, 4]) widget._widgetFleet.addShip(new Ship(x));
+    for (var x in [0, 1, 2, 3, 4]) widget._widgetFleet.addShip(new Ship(widget._player,x));
     super.initState();
   }
 
   bool isCannotPlus(index) {
     if ((widget._widgetFleet.howMuchAreaIsHeld() >
         (_allowableAreaOfShipHoldList[widget._player] -
-            Ship(index).getShipPower()))) return true;
+            ToolRefer.shipPower[index]))) return true;
     if ((index == 4 && widget._widgetFleet.howMuchShipFormed()[index] > 4))
       return true;
     return false;
@@ -40,7 +41,6 @@ class _FleetFormingState extends State<FleetForming> {
 
   void finish() {
     widget._widgetFleet.updateWholeFleetData();
-    eventBus.fire(FleetChangeEvent(widget._widgetFleet));
     eventBus.fire(StepChangerEvent(4));
   }
 
@@ -90,7 +90,7 @@ class _FleetFormingState extends State<FleetForming> {
                                 ? null
                                 : () => this.setState(() {
                                       widget._widgetFleet
-                                          .addShip(new Ship(index));
+                                          .addShip(new Ship(widget._player,index));
                                     }),
                           )
                         ]));

@@ -1,102 +1,30 @@
 import 'dart:math';
-
-class SinglePosition {
-  final int x;
-  final int y;
-  const SinglePosition([this.x = 0, this.y = 0]);
-
-  @override
-  String toString() {
-    // TODO: implement toString
-    return "( " + x.toString() + ", " + y.toString() +" )"; 
-  }
-}
-
-class TwoPosition {
-  final SinglePosition position1;
-  final SinglePosition position2;
-  const TwoPosition(
-      [this.position1 = const SinglePosition(),
-      this.position2 = const SinglePosition()]);
-
-  @override
-  String toString() {
-    // TODO: implement toString
-    return "{ pos1 : " + position1.toString() + ", Pos2 : "+position2.toString()+"}";
-  }
-}
+import 'package:sea_battle_nutn/basic_class.dart';
 
 class Ship {
   final int shipType;
+  final int _shipOwner;
+  
+  int _shipName;
 
-  final _shipPower = [6, 4, 3, 2, 1];
-  final _shipTypeNameList = ["CV", "BB", "CA", "CL", "DD"];
-  final _shipstateNameList = ["yet", "intact", "deform", "wrecked"];
-  final _directionString = [
-    "down",
-    "up",
-    "left",
-    "right",
-    "rightAndDown",
-    "leftAndDown",
-    "rightAndUp",
-    "leftAndUp"
-  ];
-  final _directionInt = [
-    [01, 00],
-    [00, 01],
-    [-1, 00],
-    [00, -1],
-    [01, 01],
-    [01, -1],
-    [-1, 01],
-    [-1, -1]
-  ];
-  final _directionInt2String = [
-    "[1, 0]",
-    "[0, 1]",
-    "[-1, 0]",
-    "[0, -1]",
-    "[1, 1]",
-    "[1, -1]",
-    "[-1, 1]",
-    "[-1, -1]"
-  ];
-  final _directionCV = [
-    [2, 3],
-    [-2, 3],
-    [2, -3],
-    [-2, -3],
-    [3, 2],
-    [3, -2],
-    [-3, 2],
-    [-3, -2]
-  ];
-
-  int _name;
-
-  TwoPosition _position;
+  TwoPosition _sHTPos; //shipHeadAndTailPosition
   int _shipState;
-  List<int> _damagedPart;
-  List<SinglePosition> shipBody = [];
+  String damagedPart = "";
+  List<ShipBody> _shipBodys = [];
 
-  //List<List<SinglePosition>> _torpedoPossiblePath;
+  Ship(this._shipOwner, this.shipType,[ this._shipName = 0,
+      this._sHTPos = const TwoPosition(), this._shipState = 0]);
 
-  Ship(this.shipType,
-      [this._position = const TwoPosition(),
-      this._shipState = 0,
-      this._damagedPart = const [0, 0, 0, 0, 0],
-      this._name]);
-
-  TwoPosition getPosition() => _position;
-  String getShipTypeName() => _shipTypeNameList[shipType];
-  String getShipStateName() => _shipstateNameList[_shipState];
-  int getShipPower() => _shipPower[shipType];
-  List<int> getShipPowerList() => _shipPower;
-  String getDamagedPart2String() => _damagedPart.join();
-  int getName() => _name;
-
-  void setName(int n) => _name = n;
+  TwoPosition getShipPosition() => _sHTPos;
+  String getShipTypeName() => ToolRefer.shipTypeNameList[shipType];
+  String getShipStateName() => ToolRefer.shipStateNameList[_shipState];
+  int getShipPower() => ToolRefer.shipPower[shipType];
+  int getShipName() => _shipName;
+  int getShipState()=>_shipState;
+  String getDamagedPartString() {
+    checkDamage();
+    return damagedPart == "" ? "intact" : damagedPart;
+  }
 
   bool isDD() => shipType == 4 ? true : false;
   bool isCV() => shipType == 0 ? true : false;
@@ -104,92 +32,100 @@ class Ship {
   bool isYet() => _shipState == 0 ? true : false;
   bool isWrecked() => _shipState == 3 ? true : false;
 
-  TwoPosition setPosition(TwoPosition newPosition) => _position = newPosition;
+  void setName(int name)=>_shipName=name;
+  TwoPosition setPosition(TwoPosition newPosition) => _sHTPos = newPosition;
   int changeShipState(int newShipState) => _shipState = newShipState;
+
+  void checkDamage() {
+    damagedPart = "";
+    if (_shipBodys.length == 0)
+      _shipState = 0;
+    else {
+      _shipBodys.forEach((shipBody) => damagedPart +=
+          (shipBody.shipBodyState == 0) ? "" : "${shipBody.shipBododyPart}");
+      _shipState = damagedPart == ""
+          ? 1
+          : (damagedPart == "0123".substring(0, ToolRefer.shipPower[shipType])
+              ? 3
+              : 2);
+    }
+  }
 
   bool moveShip(String directionString, int displacement) {
     //noCheck
-    var directionType = _directionString.indexOf(directionString);
+    var directionType = ToolRefer.directionString.indexOf(directionString);
     if (directionType == -1 || _shipState != 1) return false;
-    var changedX1 =
-        _position.position1.x + _directionInt[directionType][0] * displacement;
-    var changedY1 =
-        _position.position1.y + _directionInt[directionType][1] * displacement;
-    var changedX2 =
-        _position.position2.x + _directionInt[directionType][0] * displacement;
-    var changedY2 =
-        _position.position2.y + _directionInt[directionType][1] * displacement;
-    if (changedX1 < 0 ||
-        changedX2 < 0 ||
-        changedY1 < 0 ||
-        changedY2 < 0 ||
-        changedX1 > 7 ||
-        changedX2 > 7 ||
-        changedY1 > 15 ||
-        changedY2 > 15) return false;
-    _position = new TwoPosition(SinglePosition(changedX1, changedY1),
+    var changedX1 = _sHTPos.pos1.x +
+        ToolRefer.directionInt[directionType][0] * displacement;
+    var changedY1 = _sHTPos.pos1.y +
+        ToolRefer.directionInt[directionType][1] * displacement;
+    var changedX2 = _sHTPos.pos2.x +
+        ToolRefer.directionInt[directionType][0] * displacement;
+    var changedY2 = _sHTPos.pos2.y +
+        ToolRefer.directionInt[directionType][1] * displacement;
+    if (toolReferFunc.isOutsiderOfHalfBoardInt(changedX1, changedY1) ||
+        toolReferFunc.isOutsiderOfHalfBoardInt(changedX2, changedY2))
+      return false;
+    _sHTPos = new TwoPosition(SinglePosition(changedX1, changedY1),
         SinglePosition(changedX2, changedY2));
     return true;
   }
 
-  void ubderFire(int part) => _damagedPart[part] = 1;
-
   List<SinglePosition> getPossibleTail() {
-    var x = _position.position1.x, y = _position.position1.y;
+    var x = _sHTPos.pos1.x, y = _sHTPos.pos1.y;
     List<SinglePosition> result = [];
-    print("now at $x , $y Start find path");
+    print("now at $x , $y Start find PossibleTail");
     if (this.isCV()) {
-      for (var d in _directionCV)
-        if (!(x + d[0] > 8 || x + d[0] < -1 || y + d[1] > 16 || y + d[1] < -1))
-          result.add(SinglePosition(
-              x + d[0] - (d[0] > 0 ? 1 : -1), y + d[1] - (d[1] > 0 ? 1 : -1)));
+      for (var d in ToolRefer.directionInt.sublist(4))
+        if (!(toolReferFunc.isOutsiderOfHalfBoardInt(x + d[0], y + d[1])))
+          result.add(SinglePosition(x + d[0], y + d[1]));
     } else
-      for (var d in _directionInt)
-        if (!(x + d[0] * (_shipPower[shipType] - 1) < 0 ||
-            x + d[0] * (_shipPower[shipType] - 1) > 7 ||
-            y + d[1] * (_shipPower[shipType] - 1) < 0 ||
-            y + d[1] * (_shipPower[shipType] - 1) > 15))
-          result.add(SinglePosition(x + d[0] * (_shipPower[shipType] - 1),
-              y + d[1] * (_shipPower[shipType] - 1)));
+      for (var d in ToolRefer.directionInt)
+        if (!(toolReferFunc.isOutsiderOfHalfBoardInt(
+            x + d[0] * (ToolRefer.shipPower[shipType] - 1),
+            y + d[1] * (ToolRefer.shipPower[shipType] - 1))))
+          result.add(SinglePosition(
+              x + d[0] * (ToolRefer.shipPower[shipType] - 1),
+              y + d[1] * (ToolRefer.shipPower[shipType] - 1)));
 
     print("finish find passible path");
     return result;
   }
 
-  List<SinglePosition> getBody() {
-    if (shipBody.length == 0) {
-      if (shipType == 4)
-        shipBody
-            .add(SinglePosition(_position.position1.x, _position.position1.y));
-      else if (shipType == 0) {
-        var dx = _position.position2.x - _position.position1.x;
-        var dy = _position.position2.y - _position.position1.y;
-        for (int i = 0; i != dx + (dx > 0 ? 1 : -1); i += dx > 0 ? 1 : -1)
-          for (int j = 0; j != dy + (dy > 0 ? 1 : -1); j += dy > 0 ? 1 : -1) {
-            shipBody.add(SinglePosition(
-                _position.position1.x + i, _position.position1.y + j));
-            //print(                "Now add ${_position.position1.x + i} ${_position.position1.y + j} to Ship");
-          }
-      } else {
-        var dx = _position.position2.x - _position.position1.x;
-        var dy = _position.position2.y - _position.position1.y;
-        var l = max(dx.abs(), dy.abs());
-        String getDirection = [dx ~/ l, dy ~/ l].toString();
-        var dir = _directionInt2String.indexOf(getDirection);
+  ShipBody getBody({int part = 0}) =>
+      _shipBodys.length == 0 ? null : _shipBodys[part];
 
-        for (int i = 0; i <= l; i++) {
-          shipBody.add(SinglePosition(
-              _position.position1.x + _directionInt[dir][0] * i,
-              _position.position1.y + _directionInt[dir][1] * i));
-          //print(              "Now add ${_position.position1.x + _directionInt[dir][0] * i} ${_position.position1.y + _directionInt[dir][1] * i} to Ship");
-        }
+  List<ShipBody> getBodys({bool reGet = false}) {
+    if (_shipBodys.length == 0 || reGet) {
+      if (isDD())
+        _shipBodys
+            .add(ShipBody(_shipOwner, shipType, _shipName, _sHTPos.pos1, 0));
+      else if (isCV()) {
+        [
+          _sHTPos.pos1,
+          SinglePosition(_sHTPos.pos2.x, _sHTPos.pos1.y),
+          SinglePosition(_sHTPos.pos1.x, _sHTPos.pos2.y),
+          _sHTPos.pos2
+        ].asMap().forEach((index, pos) => _shipBodys
+            .add(ShipBody(_shipOwner, shipType, _shipName, pos, index)));
+      } else {
+        var dx = _sHTPos.pos2.x - _sHTPos.pos1.x;
+        var dy = _sHTPos.pos2.y - _sHTPos.pos1.y;
+        var l = max(dx.abs(), dy.abs());
+        for (int i = 0; i <= l; i++)
+          _shipBodys.add(ShipBody(
+              _shipOwner,
+              shipType,
+              _shipName,
+              toolReferFunc.posAddOXY(
+                  _sHTPos.pos1, i * (dx ~/ l), i * (dy ~/ l)),
+              i));
       }
     }
-    return shipBody;
+    return _shipBodys;
   }
 
   @override
-  String toString() {
-    return "shipType : "+this.getShipTypeName()+"\n shipPos : "+this.getPosition().toString()+"\n Damaged : "+this.getDamagedPart2String();
-  }
+  String toString() =>
+      "ship : ${getShipTypeName() + getShipName().toString()} is ${ToolRefer.shipStateNameList[_shipState]}\n\tshipPos : ${getShipPosition()}\n\tDamaged : ${getDamagedPartString()}";
 }
