@@ -158,7 +158,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
     if (_turn == "1" && began) {
       _battleFieldStateTa.download();
       began = false;
-    } else if (_myTurn &&
+      loader2 = true;
+    } else if (_myTurn && _turns > 1 &&
         _battleFieldState.fleet.getOwner() != 3 &&
         _shouldReloaded) {
       fireBaseDB
@@ -421,7 +422,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
                 ],
               ),
               null
-            ][(weaponButtonState == 0 && _myTurn && loader2) ? 0 : 1],
+            ][(weaponButtonState == 0 && _myTurn /*&& loader2*/) ? 0 : 1],
           ),
           Container(
             child: (weaponButtonState != 1 || !_myTurn)

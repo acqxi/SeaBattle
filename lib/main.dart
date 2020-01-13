@@ -38,7 +38,7 @@ class StatefulAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _StatefulAppBarState extends State<StatefulAppBar> {
   var _stepOrdinal = 0;
   var _stepNameList = [
-    "CBattle - 1.1.219Y1M13D1434",
+    "CBattle - 1.1.219Y1M13D1515",
     "FleetForming",
     "FleetForming",
     "FleetForming",
@@ -154,7 +154,7 @@ class _HomePageState extends State<HomePage> {
           Embattle(_battl),
           SeaWarfare(_battl),
           Container(
-            child: Text(whoWin() + winner + "win"),
+            child: Text( "sentewin"),
           )
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
