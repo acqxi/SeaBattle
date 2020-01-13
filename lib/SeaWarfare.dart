@@ -74,7 +74,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
 
     fireBaseDB
         .child("LastShipNumber")
-        .set({
+        .update({
           "${_battleFieldState.fleet.getOwnerName()}":
               _battleFieldState.fleet.howMuchAreaIsHeld()
         })
@@ -426,7 +426,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
                   ),
                   OutlineButton(
                     child: Text("Shelling"),
-                    onPressed: () => this.setState(() => weaponButtonState = 2),
+                    onPressed: null//() => this.setState(() => weaponButtonState = 2),
                   )
                 ],
               ),
