@@ -38,7 +38,7 @@ class StatefulAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _StatefulAppBarState extends State<StatefulAppBar> {
   var _stepOrdinal = 0;
   var _stepNameList = [
-    "CBattle - 1.0",
+    "CBattle - 1.1.219Y1M13D1429",
     "FleetForming",
     "FleetForming",
     "FleetForming",
@@ -163,16 +163,25 @@ class _HomePageState extends State<HomePage> {
 
   String winner = "Loading....";
   String whoWin() {
+    if (_stepOrdinal != 6) return "";
     fireBaseDB
         .child("LastShipNumber")
         .once()
         .then((DataSnapshot snapShot) {
           Map data = snapShot.value;
           this.setState(() {
-            winner = (data["Senta"] > data["Gote"]) ? "Sente" : "Gote";
+            winner = ((20 - int.parse(data["Senta"])) >
+                    (22 - int.parse(data["Gote"])))
+                ? "Sente"
+                : "Gote";
           });
+          fireBaseDB
+              .child("Battle/20")
+              .set({"O": winner})
+              .whenComplete(() => print("Winner"))
+              .catchError((e) => print(e));
         })
-        .whenComplete(() => print("Winner"))
+        .whenComplete(() => this.setState(() => print("Winner")))
         .catchError((e) => print(e));
     return "";
   }
