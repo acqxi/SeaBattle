@@ -38,7 +38,7 @@ class StatefulAppBar extends StatefulWidget implements PreferredSizeWidget {
 class _StatefulAppBarState extends State<StatefulAppBar> {
   var _stepOrdinal = 0;
   var _stepNameList = [
-    "CBattle - 1.1.219Y1M13D1429",
+    "CBattle - 1.1.219Y1M13D1434",
     "FleetForming",
     "FleetForming",
     "FleetForming",

@@ -46,8 +46,11 @@ class _SeaWarfareState extends State<SeaWarfare> {
 
   int thisTurnAttck = 0;
 
+  bool loader2;
+
   @override
   void initState() {
+    loader2 = true;
     _shouldReloaded = true;
     began = true;
     _turns = 0;
@@ -67,11 +70,11 @@ class _SeaWarfareState extends State<SeaWarfare> {
     eventBus.on<LoadFinishEvent>().listen((LoadFinishEvent data) =>
         this.setState(() => _loaded = data.loadFinish));
 
-    fireBaseDB.child("LastShipNumber").onValue.listen((Event event) {
+    /*fireBaseDB.child("LastShipNumber").onValue.listen((Event event) {
       lastSMe = event.snapshot.value[_battleFieldState.fleet.getOwnerName()];
       lastSTa = event.snapshot.value[_battleFieldStateTa.fleet.getOwnerName()];
-    });
-
+    });*/
+/*
     fireBaseDB
         .child("LastShipNumber")
         .update({
@@ -79,12 +82,13 @@ class _SeaWarfareState extends State<SeaWarfare> {
               _battleFieldState.fleet.howMuchAreaIsHeld()
         })
         .whenComplete(() => print("set shipnumber"))
-        .catchError((e) => print(e));
+        .catchError((e) => print(e));*/
 
     fireBaseDB.child("PlayerState").onValue.listen((Event event) {
       if (event.snapshot.value != null) {
         Map map = event.snapshot.value;
         this.setState(() {
+          loader2 = false;
           _turn = map["Turn"];
           if (_turn == "notStart" || _turn == null || _turn == "wait")
             _myTurn = false;
@@ -104,7 +108,6 @@ class _SeaWarfareState extends State<SeaWarfare> {
             dataY1 = 0;
             dataY2 = 0;
             canLaunch = true;
-            thisTurnAttck = 0;
           }
         });
       }
@@ -147,7 +150,9 @@ class _SeaWarfareState extends State<SeaWarfare> {
   String whatTurnItIs() {
     //markAttack[SinglePosition(15, 0).toString()] = 1;
     print("check local turn");
-    if(_turn == "20"){
+    if (_turn == "21") {
+      fireBaseDB.child("LastShipNumber").update(
+          {_battleFieldStateTa.fleet.getOwnerName(): thisTurnAttck.toString()});
       eventBus.fire(StepChangerEvent(6));
     }
     if (_turn == "1" && began) {
@@ -202,7 +207,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
         }
         print("deform imported");
       }).whenComplete(() {
-        print("reLoad");
+        print("reLoad");        
+        loader2 = true;
         reloadMap();
       }).catchError((e) => print("error : $e"));
       _shouldReloaded = false;
@@ -297,14 +303,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
   void changeTurn() => fireBaseDB
       .child("PlayerState")
       .update({"Turn": (_turns + 1).toString()})
-      .whenComplete(() => fireBaseDB
-          .child("LastShipNumber")
-          .update({
-            _battleFieldStateTa.fleet.getOwnerName():
-                (lastSTa - thisTurnAttck).toString()
-          })
-          .whenComplete(() => print("L C"))
-          .catchError((e) => print(e)))
+      .whenComplete(() => print("XX"))
       .catchError((e) => print(e));
 
   @override
@@ -330,36 +329,29 @@ class _SeaWarfareState extends State<SeaWarfare> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             mainAxisSize: MainAxisSize.min,
                             children: List<Widget>.generate(_row, (posY) {
-                              return GestureDetector(
-                                  child: Container(
-                                    color: iconColorList[markAttack[
-                                            SinglePosition(8 + posX, posY)
-                                                .toString()] ??
-                                        0],
-                                    child: SizedBox(
-                                        width:
-                                            MediaQuery.of(context).size.height /
-                                                _globalAdjustmentCoefficient,
-                                        height:
-                                            MediaQuery.of(context).size.height /
-                                                _globalAdjustmentCoefficient,
-                                        child: Icon(
-                                          ToolRefer.iconDataListTa[
-                                              _battleFieldStateTa
-                                                  .getCell(posX, posY)
-                                                  .getOnThisInNumber()],
-                                          color: ToolRefer.iconColorListTa[
-                                              _battleFieldStateTa
-                                                  .getCell(posX, posY)
-                                                  .getOnThisInNumber()],
-                                          size: MediaQuery.of(context)
-                                                  .size
-                                                  .height /
-                                              _globalAdjustmentCoefficient,
-                                        )),
-                                  ),
-                                  onTap: () {},
-                                  onLongPress: () {});
+                              return Container(
+                                color: iconColorList[markAttack[
+                                        SinglePosition(8 + posX, posY)
+                                            .toString()] ??
+                                    0],
+                                child: SizedBox(
+                                    width: MediaQuery.of(context).size.height /
+                                        _globalAdjustmentCoefficient,
+                                    height: MediaQuery.of(context).size.height /
+                                        _globalAdjustmentCoefficient,
+                                    child: Icon(
+                                      ToolRefer.iconDataListTa[
+                                          _battleFieldStateTa
+                                              .getCell(posX, posY)
+                                              .getOnThisInNumber()],
+                                      color: ToolRefer.iconColorListTa[
+                                          _battleFieldStateTa
+                                              .getCell(posX, posY)
+                                              .getOnThisInNumber()],
+                                      size: MediaQuery.of(context).size.height /
+                                          _globalAdjustmentCoefficient,
+                                    )),
+                              );
                             }),
                           ),
                         );
@@ -380,30 +372,27 @@ class _SeaWarfareState extends State<SeaWarfare> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: List<Widget>.generate(_row, (posY) {
-                        return GestureDetector(
-                            child: Container(
-                              color: iconColorList[markAttack[
-                                      SinglePosition(posX, posY).toString()] ??
-                                  0],
-                              child: SizedBox(
-                                  width: MediaQuery.of(context).size.height /
-                                      _globalAdjustmentCoefficient,
-                                  height: MediaQuery.of(context).size.height /
-                                      _globalAdjustmentCoefficient,
-                                  child: Icon(
-                                    ToolRefer.iconDataListMe[_battleFieldState
+                        return Container(
+                          color: iconColorList[markAttack[
+                                  SinglePosition(posX, posY).toString()] ??
+                              0],
+                          child: SizedBox(
+                              width: MediaQuery.of(context).size.height /
+                                  _globalAdjustmentCoefficient,
+                              height: MediaQuery.of(context).size.height /
+                                  _globalAdjustmentCoefficient,
+                              child: Icon(
+                                ToolRefer.iconDataListMe[_battleFieldState
+                                    .getCell(posX, posY)
+                                    .getOnThisInNumber()],
+                                color: ToolRefer.iconColorListMe[
+                                    _battleFieldState
                                         .getCell(posX, posY)
                                         .getOnThisInNumber()],
-                                    color: ToolRefer.iconColorListMe[
-                                        _battleFieldState
-                                            .getCell(posX, posY)
-                                            .getOnThisInNumber()],
-                                    size: MediaQuery.of(context).size.height /
-                                        _globalAdjustmentCoefficient,
-                                  )),
-                            ),
-                            onTap: () {},
-                            onLongPress: () {});
+                                size: MediaQuery.of(context).size.height /
+                                    _globalAdjustmentCoefficient,
+                              )),
+                        );
                       }),
                     ),
                   );
@@ -425,13 +414,14 @@ class _SeaWarfareState extends State<SeaWarfare> {
                     },
                   ),
                   OutlineButton(
-                    child: Text("Shelling"),
-                    onPressed: null//() => this.setState(() => weaponButtonState = 2),
-                  )
+                      child: Text("Shelling"),
+                      onPressed:
+                          null //() => this.setState(() => weaponButtonState = 2),
+                      )
                 ],
               ),
               null
-            ][(weaponButtonState == 0 && _myTurn) ? 0 : 1],
+            ][(weaponButtonState == 0 && _myTurn && loader2) ? 0 : 1],
           ),
           Container(
             child: (weaponButtonState != 1 || !_myTurn)
