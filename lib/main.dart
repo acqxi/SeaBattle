@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-//import 'package:sea_battle_nutn/SeaWarfare.dart';
+import 'package:sea_battle_nutn/SeaWarfare.dart';
+import 'package:sea_battle_nutn/basic_class.dart';
 import 'package:sea_battle_nutn/battle_event.dart';
-//import 'package:sea_battle_nutn/embattle.dart';
+import 'package:sea_battle_nutn/embattle.dart';
 import 'package:sea_battle_nutn/fleet%20_forming.dart';
 import 'package:sea_battle_nutn/fleet_state.dart';
-//import 'package:sea_battle_nutn/territorial_sea.dart';
+import 'package:sea_battle_nutn/territorial_sea.dart';
 
 final DatabaseReference fireBaseDB = FirebaseDatabase.instance.reference();
 
@@ -38,11 +39,12 @@ class _StatefulAppBarState extends State<StatefulAppBar> {
   var _stepOrdinal = 0;
   var _stepNameList = [
     "CBattle",
-    "Sente FleetForming",
-    "Gote FleetForming",
-    "Onlooker FleetForming",
+    "FleetForming",
+    "FleetForming",
+    "FleetForming",
     "Embattle",
-    "SeaWarfare"
+    "SeaWarfare",
+    "End"
   ];
   var _playerName = "";
 
@@ -61,7 +63,8 @@ class _StatefulAppBarState extends State<StatefulAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(title: Text(_playerName + _stepNameList[_stepOrdinal]));
+    return AppBar(
+        title: Text(_playerName + " - " + _stepNameList[_stepOrdinal]));
   }
 }
 
@@ -78,9 +81,8 @@ class _HomePageState extends State<HomePage> {
   var _stepOrdinal = 0;
   var _player = 0;
   var _fleet;
+  var _battl;
   //var _terri = TerritorialSea();
-
-  final _playerName = ["Start", "Sente", "Gote", "Onlooker"];
 
   @override
   void initState() {
@@ -106,20 +108,21 @@ class _HomePageState extends State<HomePage> {
         .once()
         .then((DataSnapshot snapshot) {
           var data = snapshot.value;
-          print(data["${_playerName[1]}"]);
-          if (data["${_playerName[1]}"] == "unuse")
+          print(data["${ToolRefer.ownerNameList[1]}"]);
+          if (data["${ToolRefer.ownerNameList[1]}"] == "unuse")
             _player = 1;
-          else if (data["${_playerName[2]}"] == "unuse")
+          else if (data["${ToolRefer.ownerNameList[2]}"] == "unuse")
             _player = 2;
           else
             _player = 3;
 
           _fleet = Fleet(_player);
+          _battl = BattleField(row: 8, col: 8, fleet: _fleet);
           print(_fleet.getOwnerName());
 
           fireBaseDB
               .child("PlayerState")
-              .update({"${_playerName[_player]}": "using"})
+              .update({"${ToolRefer.ownerNameList[_player]}": "using"})
               .whenComplete(() => print("update finish"))
               .catchError((error) => print(error));
         })
@@ -130,14 +133,16 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: _stepOrdinal != 5
+          ? MainAxisAlignment.center
+          : MainAxisAlignment.start,
       children: <Widget>[
         Container(
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               OutlineButton(
-                child: Text(_playerName[_player]),
+                child: Text(ToolRefer.ownerNameList[_player]),
                 onPressed: _stepOrdinal != 0 ? null : startCBattle,
               )
             ],
@@ -146,10 +151,29 @@ class _HomePageState extends State<HomePage> {
         [
           Container(),
           FleetForming(_fleet, _stepOrdinal),
-          //Embattle(_fleet),
-          //SeaWarfare(_terri)
+          Embattle(_battl),
+          SeaWarfare(_battl),
+          Container(
+            child: Text(whoWin() + winner + "win"),
+          )
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
     );
+  }
+
+  String winner = "Loading....";
+  String whoWin() {
+    fireBaseDB
+        .child("LastShipNumber")
+        .once()
+        .then((DataSnapshot snapShot) {
+          Map data = snapShot.value;
+          this.setState(() {
+            winner = (data["Senta"] > data["Gote"]) ? "Sente" : "Gote";
+          });
+        })
+        .whenComplete(() => print("Winner"))
+        .catchError((e) => print(e));
+    return "";
   }
 }

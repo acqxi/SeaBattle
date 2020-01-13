@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:sea_battle_nutn/basic_class.dart';
+import 'package:sea_battle_nutn/main.dart';
 
 class Ship {
   final int shipType;
   final int _shipOwner;
-  
+
   int _shipName;
 
   TwoPosition _sHTPos; //shipHeadAndTailPosition
@@ -12,15 +13,17 @@ class Ship {
   String damagedPart = "";
   List<ShipBody> _shipBodys = [];
 
-  Ship(this._shipOwner, this.shipType,[ this._shipName = 0,
-      this._sHTPos = const TwoPosition(), this._shipState = 0]);
+  Ship(this._shipOwner, this.shipType,
+      [this._shipName = 0,
+      this._sHTPos = const TwoPosition(),
+      this._shipState = 0]);
 
   TwoPosition getShipPosition() => _sHTPos;
   String getShipTypeName() => ToolRefer.shipTypeNameList[shipType];
   String getShipStateName() => ToolRefer.shipStateNameList[_shipState];
   int getShipPower() => ToolRefer.shipPower[shipType];
   int getShipName() => _shipName;
-  int getShipState()=>_shipState;
+  int getShipState() => _shipState;
   String getDamagedPartString() {
     checkDamage();
     return damagedPart == "" ? "intact" : damagedPart;
@@ -32,23 +35,48 @@ class Ship {
   bool isYet() => _shipState == 0 ? true : false;
   bool isWrecked() => _shipState == 3 ? true : false;
 
-  void setName(int name)=>_shipName=name;
+  void die(String s, String turn) {
+    String str = ({"CV": "V", "DD": "D"}[getShipTypeName()] ?? "B") +
+        (ToolRefer.ascii[_sHTPos.pos1.x + 8] ?? "Z") +
+        (ToolRefer.ascii[_sHTPos.pos1.y] ?? "Z") +
+        (ToolRefer.ascii[_sHTPos.pos2.x + 8] ?? "Z") +
+        (ToolRefer.ascii[_sHTPos.pos2.y] ?? "Z");
+
+    fireBaseDB
+        .child("Battle/$turn")
+        .update({"L": "$str"})
+        .whenComplete(() => print("die $str"))
+        .catchError((error) => print(error));
+  }
+
+  void setName(int name) => _shipName = name;
   TwoPosition setPosition(TwoPosition newPosition) => _sHTPos = newPosition;
   int changeShipState(int newShipState) => _shipState = newShipState;
 
   void checkDamage() {
     damagedPart = "";
-    if (_shipBodys.length == 0)
+    print("in checkDamage shipbodys num : ${getBody()}");
+    if (_shipBodys.length == 0 && _shipState == 0) {
       _shipState = 0;
-    else {
-      _shipBodys.forEach((shipBody) => damagedPart +=
-          (shipBody.shipBodyState == 0) ? "" : "${shipBody.shipBododyPart}");
-      _shipState = damagedPart == ""
-          ? 1
-          : (damagedPart == "0123".substring(0, ToolRefer.shipPower[shipType])
-              ? 3
-              : 2);
+      print("set ${getShipTypeName()}${getShipName()} to 0");
+    } else {
+      if (_shipBodys.length == 0)
+        print("error");
+      else {
+        print("start check");
+        _shipBodys.forEach((shipBody) => damagedPart +=
+            (shipBody.shipBodyState == 0) ? "" : "${shipBody.shipBododyPart}");
+        _shipState = damagedPart == ""
+            ? 1
+            : (damagedPart == "0123".substring(0, ToolRefer.shipPower[shipType])
+                ? 3
+                : 2);
+      }
     }
+    if (_shipState == 3) {
+      _shipBodys.forEach((shipBody) => shipBody.shipBodyState = 2);
+    }
+    print("checkDamage\n${this.damagedPart}\n${getShipStateName()}");
   }
 
   bool moveShip(String directionString, int displacement) {
@@ -125,7 +153,27 @@ class Ship {
     return _shipBodys;
   }
 
+  List<SinglePosition> getPossibleBodysPos(int x, int y) {
+    List<SinglePosition> possibleBodysPos = [];
+    if (isCV()) {
+      [
+        _sHTPos.pos1,
+        SinglePosition(x, _sHTPos.pos1.y),
+        SinglePosition(_sHTPos.pos1.x, y),
+        SinglePosition(x, y)
+      ].forEach((pos) => possibleBodysPos.add(pos));
+    } else {
+      var dx = x - _sHTPos.pos1.x;
+      var dy = y - _sHTPos.pos1.y;
+      var l = max(dx.abs(), dy.abs());
+      for (int i = 0; i <= l; i++)
+        possibleBodysPos.add(SinglePosition(
+            _sHTPos.pos1.x + i * (dx ~/ l), _sHTPos.pos1.y + i * (dy ~/ l)));
+    }
+    return possibleBodysPos;
+  }
+
   @override
   String toString() =>
-      "ship : ${getShipTypeName() + getShipName().toString()} is ${ToolRefer.shipStateNameList[_shipState]}\n\tshipPos : ${getShipPosition()}\n\tDamaged : ${getDamagedPartString()}";
+      "ship : ${getShipTypeName() + getShipName().toString()} is ${ToolRefer.shipStateNameList[_shipState]}\n\tshipPos : ${getShipPosition()}\n\tDamaged : ${getDamagedPartString()}\n";
 }

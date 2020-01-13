@@ -12,3 +12,10 @@ class TurnChangerEvent{
 
   TurnChangerEvent(this.turnName);
 }
+
+
+class LoadFinishEvent{
+  bool loadFinish;
+
+  LoadFinishEvent(this.loadFinish);
+}

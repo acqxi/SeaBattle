@@ -40,6 +40,8 @@ class _FleetFormingState extends State<FleetForming> {
   }
 
   void finish() {
+    
+    print(widget._widgetFleet);
     widget._widgetFleet.updateWholeFleetData();
     eventBus.fire(StepChangerEvent(4));
   }

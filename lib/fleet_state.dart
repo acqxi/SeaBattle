@@ -1,3 +1,4 @@
+//import 'package:firebase_database/firebase_database.dart';
 import 'package:sea_battle_nutn/basic_class.dart';
 import 'package:sea_battle_nutn/main.dart';
 import 'package:sea_battle_nutn/ship_state.dart';
@@ -19,37 +20,46 @@ class Fleet {
     return temp;
   }
 
-  void importFleetData(Map data) {
-    data.forEach((indexString, typeShipsString) {
-      Map typeShipMap = typeShipsString;
-      //print(typeShipMap["num"].toString() + "typeShipMap[num]");
-      for (int i = 0; i < int.parse(typeShipMap["num"]); i++) {
-        //print(typeShipMap[i.toString()]);
-        //print(typeShipMap[i.toString()]["DamagedPart"].toString().split(''));
-        List<int> ktemp = [];
-        for (var k in typeShipMap[i.toString()]["DamagedPart"]
-            .toString()
-            .split('')) ktemp.add(int.parse(k));
+  /*void importFleetData() {
+    fireBaseDB
+        .child("State")
+        .once()
+        .then((DataSnapshot snapshot) {
+          Map data = snapshot.value;
+          data.forEach((indexString, typeShipsString) {
+            Map typeShipMap = typeShipsString;
+            //print(typeShipMap["num"].toString() + "typeShipMap[num]");
+            for (int i = 0; i < int.parse(typeShipMap["num"]); i++) {
+              //print(typeShipMap[i.toString()]);
+              //print(typeShipMap[i.toString()]["DamagedPart"].toString().split(''));
 
-        //print(_shipTypeNameList.indexOf(indexString));
-        //print(ktemp);
-        _fleetShips[ToolRefer.shipTypeNameList.indexOf(indexString)].add(Ship(
-            _owner,
-            ToolRefer.shipTypeNameList.indexOf(indexString),
-            i,
-            TwoPosition(
-                SinglePosition(
-                    int.parse(typeShipMap[i.toString()]["Pos1"]["X"]),
-                    int.parse(typeShipMap[i.toString()]["Pos1"]["Y"])),
-                SinglePosition(
-                    int.parse(typeShipMap[i.toString()]["Pos2"]["X"]),
-                    int.parse(typeShipMap[i.toString()]["Pos2"]["Y"]))),
-            ToolRefer.shipStateNameList
-                .indexOf(typeShipMap[i.toString()]["State"])));
-        print("Fleet Import perfectly Okey");
-      }
-    });
-  }
+              //print(_shipTypeNameList.indexOf(indexString));
+              //print(ktemp);
+              _fleetShips[ToolRefer.shipTypeNameList.indexOf(indexString)].add(
+                  Ship(
+                      _owner,
+                      ToolRefer.shipTypeNameList.indexOf(indexString),
+                      i,
+                      TwoPosition(
+                          SinglePosition(
+                              int.parse(typeShipMap[i.toString()]["Pos1"]["X"]),
+                              int.parse(
+                                  typeShipMap[i.toString()]["Pos1"]["Y"])),
+                          SinglePosition(
+                              int.parse(typeShipMap[i.toString()]["Pos2"]["X"]),
+                              int.parse(
+                                  typeShipMap[i.toString()]["Pos2"]["Y"]))),
+                      ToolRefer.shipStateNameList
+                          .indexOf(typeShipMap[i.toString()]["State"])));
+              
+            }
+
+            print("Fleet Import perfectly Okey");
+          });
+        })
+        .whenComplete(() => print("Teb Fleet Imported"))
+        .catchError((e) => print(e));
+  }*/
 
   List<Ship> torpedoShip() {
     List<Ship> _torpedoShip = [];
@@ -60,12 +70,12 @@ class Fleet {
     return _torpedoShip;
   }
 
-  void addShip(Ship newShip) => _fleetShips[newShip.shipType].add(Ship(
-      _owner,
-      newShip.shipType,
-      _fleetShips[newShip.shipType].length,
-      newShip.getShipPosition(),
-      newShip.getShipState()));
+  Ship getShip(int shiptype,int shipName) =>_fleetShips[shiptype][shipName];
+
+  void addShip(Ship newShip) {
+    newShip.setName(_fleetShips[newShip.shipType].length);
+    _fleetShips[newShip.shipType].add(newShip);
+  }
 
   void popShip(int shipType) => _fleetShips[shipType].removeLast();
 
@@ -111,10 +121,21 @@ class Fleet {
         }));
   }
 
-  List fleetToListMap(int shipType){
+  List fleetToListMap(int shipType) {
     List temp = [];
-    _fleetShips[shipType].forEach((ship){
-      temp.add({"State":ship.getShipStateName(),"Pos1":{"X":ship.getShipPosition().pos1.x.toString(),"Y":ship.getShipPosition().pos1.y.toString()},"Pos2":{"X":ship.getShipPosition().pos2.x.toString(),"Y":ship.getShipPosition().pos2.y.toString()},"DamagedPart":ship.getDamagedPartString()});
+    _fleetShips[shipType].forEach((ship) {
+      temp.add({
+        "State": ship.getShipStateName(),
+        "Pos1": {
+          "X": ship.getShipPosition().pos1.x.toString(),
+          "Y": ship.getShipPosition().pos1.y.toString()
+        },
+        "Pos2": {
+          "X": ship.getShipPosition().pos2.x.toString(),
+          "Y": ship.getShipPosition().pos2.y.toString()
+        },
+        "DamagedPart": ship.getDamagedPartString()
+      });
     });
     return temp;
   }
@@ -125,13 +146,19 @@ class Fleet {
       temp[singleTypeShips[0].getShipTypeName()] = {
         "num": singleTypeShips.length.toString()
       };
-      fleetToListMap(singleTypeShips[0].shipType).asMap().forEach((index,value)=>temp[singleTypeShips[0].getShipTypeName()][index.toString()]=value);
+      fleetToListMap(singleTypeShips[0].shipType).asMap().forEach((index,
+              value) =>
+          temp[singleTypeShips[0].getShipTypeName()][index.toString()] = value);
     });
 
-    fireBaseDB.child("State/${this.getOwner()}").set(temp).whenComplete(() {
-      print("finish set");
+    fireBaseDB.child("State/${this.getOwnerName()}").set(temp).whenComplete(() {
+      print("finish set ");
     }).catchError((error) {
       print(error);
     });
   }
+
+  @override
+  String toString() =>
+      "{${ToolRefer.ownerNameList[_owner]}'s Fleet\n\tCV : total ${getSigleTypeShips(0).length}\n\tBB : total ${getSigleTypeShips(1).length}\n\tCA : total ${getSigleTypeShips(2).length}\n\tCL : total ${getSigleTypeShips(3).length}\n\tDD : total ${getSigleTypeShips(4).length}}";
 }
