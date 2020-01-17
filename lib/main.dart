@@ -154,7 +154,18 @@ class _HomePageState extends State<HomePage> {
           Embattle(_battl),
           SeaWarfare(_battl),
           Container(
-            child: Text( "sentewin"),
+            child: Column(
+              children: <Widget>[
+                Container(
+                  child: _stepOrdinal != 6
+                      ? null
+                      : Text(whoWin() + winner + " win!"),
+                ),
+                Container(
+                  child: _stepOrdinal != 6 ? null : Text(last),
+                )
+              ],
+            ),
           )
         ][_stepOrdinal < 1 ? 0 : (_stepOrdinal < 4 ? 1 : (_stepOrdinal - 2))],
       ],
@@ -162,19 +173,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   String winner = "Loading....";
+  String last = "";
   String whoWin() {
     if (_stepOrdinal != 6) return "";
+    print("check winner");
     fireBaseDB
         .child("LastShipNumber")
         .once()
         .then((DataSnapshot snapShot) {
-          Map data = snapShot.value;
-          this.setState(() {
-            winner = ((20 - int.parse(data["Senta"])) >
-                    (22 - int.parse(data["Gote"])))
-                ? "Sente"
-                : "Gote";
-          });
+          //print(">?");
+          Map dataO = snapShot.value;
+          print(dataO);
+          List<String> data = [];
+          dataO.forEach((var k,v)=>data.add(v.toString()));
+          print(data);
+          int senteLast = (20 - int.parse(data[0]));
+          int goteLast = (22 - int.parse(data[1]));
+          print(senteLast);
+          print(goteLast);
+          if (senteLast > goteLast) winner = "Sente";
+          else if (senteLast < goteLast) winner = "Gote";
+          else if (senteLast == goteLast) winner = "Noone is";
+          last = "Sente$senteLast : Gote$goteLast";
+          
+          print("send O");
           fireBaseDB
               .child("Battle/20")
               .set({"O": winner})

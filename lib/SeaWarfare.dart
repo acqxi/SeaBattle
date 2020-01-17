@@ -33,6 +33,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
   bool _shouldReloaded;
 
   int weaponButtonState;
+  
+  LockCheck lockWriteData;
 
   BattleField _battleFieldState;
   BattleField _battleFieldStateTa;
@@ -60,6 +62,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
     _globalAdjustmentCoefficient = 30;
     weaponButtonState = 0;
     _myTurn = false;
+    lockWriteData = LockCheck();
 
     _battleFieldState = widget._battleField;
     _battleFieldStateTa = new BattleField(
@@ -88,7 +91,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
       if (event.snapshot.value != null) {
         Map map = event.snapshot.value;
         this.setState(() {
-          loader2 = false;
+          loader2 = true;
           _turn = map["Turn"];
           if (_turn == "notStart" || _turn == null || _turn == "wait")
             _myTurn = false;
@@ -108,6 +111,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
             dataY1 = 0;
             dataY2 = 0;
             canLaunch = true;
+            lockWriteData.lockFinish = [true, true, true, true];
           }
         });
       }
@@ -158,8 +162,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
     if (_turn == "1" && began) {
       _battleFieldStateTa.download();
       began = false;
-      loader2 = true;
-    } else if (_myTurn && _turns > 1 &&
+    } else if (_myTurn &&
+        _turns > 1 &&
         _battleFieldState.fleet.getOwner() != 3 &&
         _shouldReloaded) {
       fireBaseDB
@@ -208,8 +212,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
         }
         print("deform imported");
       }).whenComplete(() {
-        print("reLoad");        
-        loader2 = true;
+        print("reLoad");
         reloadMap();
       }).catchError((e) => print("error : $e"));
       _shouldReloaded = false;
@@ -239,6 +242,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
   }
 
   void torpedoing() {
+    loader2 = false;
     int take1x, take2x;
     if (!shipsCanTorpedo[shipCode].isDD()) {
       for (int i = 0; i < 8; i++) {
@@ -246,7 +250,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
             _battleFieldStateTa.cellPad[i][dataY2].onThisBoardCellShipBody;
         if (shipBody != null) {
           if (shipBody.shipBodyState == 0) {
-            shipBody.beingAttack('H', _turn);
+            lockWriteData.lockFinish[0] == false;
+            shipBody.beingAttack('H', _turn, lockWriteData, 0);
             var ship = _battleFieldStateTa.fleet
                 .getShip(shipBody.shipType, shipBody.shipName);
             ship.checkDamage();
@@ -263,8 +268,10 @@ class _SeaWarfareState extends State<SeaWarfare> {
       String str = ToolRefer.ascii[dataY2] +
           ToolRefer.ascii[dataX2] +
           ToolRefer.ascii[take2x ?? 16];
+      lockWriteData.lockFinish[1] = false;
       fireBaseDB.child("Battle/$_turn").update({"B": "$str"}).whenComplete(() {
         print("launch $str Torpedo");
+        lockWriteData.lockFinish[1] = true;
       }).catchError((error) {
         print(error);
       });
@@ -275,7 +282,8 @@ class _SeaWarfareState extends State<SeaWarfare> {
       print(shipBody);
       if (shipBody != null) {
         if (shipBody.shipBodyState == 0) {
-          shipBody.beingAttack('G', _turn);
+          lockWriteData.lockFinish[2] = false;
+          shipBody.beingAttack('G', _turn, lockWriteData, 2);
           var ship = _battleFieldStateTa.fleet
               .getShip(shipBody.shipType, shipBody.shipName);
           ship.checkDamage();
@@ -292,10 +300,15 @@ class _SeaWarfareState extends State<SeaWarfare> {
     String str = ToolRefer.ascii[dataY1] +
         ToolRefer.ascii[dataX1] +
         ToolRefer.ascii[take1x ?? 16];
+    lockWriteData.lockFinish[3] = false;
     fireBaseDB.child("Battle/$_turn").update({"A": "$str"}).whenComplete(() {
       print("launch $str Torpedo");
-
+      lockWriteData.lockFinish[3] = true;
+      while (!lockWriteData.isAllTrue()) {
+        print("data sending");
+      }
       changeTurn();
+      loader2 = true;
     }).catchError((error) {
       print(error);
     });
@@ -304,7 +317,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
   void changeTurn() => fireBaseDB
       .child("PlayerState")
       .update({"Turn": (_turns + 1).toString()})
-      .whenComplete(() => print("XX"))
+      .whenComplete(() => print("send turn changed"))
       .catchError((e) => print(e));
 
   @override
@@ -422,7 +435,7 @@ class _SeaWarfareState extends State<SeaWarfare> {
                 ],
               ),
               null
-            ][(weaponButtonState == 0 && _myTurn /*&& loader2*/) ? 0 : 1],
+            ][(weaponButtonState == 0 && _myTurn && loader2) ? 0 : 1],
           ),
           Container(
             child: (weaponButtonState != 1 || !_myTurn)

@@ -199,6 +199,16 @@ class TwoPosition {
   String toString() => "{ pos1 : $pos1 , Pos2 : $pos2 }";
 }
 
+class LockCheck{
+  List<bool> lockFinish;
+  LockCheck([this.lockFinish = const [true,true,true,true]]);
+
+  bool isAllTrue(){
+    for(bool b in lockFinish){
+      if(!b) return false;
+    }return true;
+  }
+}
 class ShipBody {
   final SinglePosition shipBodPosition;
   final int shipBododyPart;
@@ -210,14 +220,15 @@ class ShipBody {
       this.shipBododyPart,
       {this.shipBodyState = 0});
 
-  beingAttack([String s,String turn]) { 
+  beingAttack([String s,String turn,LockCheck lock,int lockNumber = -1]) { 
     shipBodyState=1;
     fireBaseDB.child("Battle/$turn").update({"$s": "${ToolRefer.ascii[8+shipBodPosition.x]+ToolRefer.ascii[shipBodPosition.y]}"}).whenComplete(() {
         print("attack ${ToolRefer.ascii[8+shipBodPosition.x]+ToolRefer.ascii[shipBodPosition.y]} ${ToolRefer.shipTypeNameList[shipType]}$shipName @ ${toolReferFunc.posAddOXY(shipBodPosition, 8, 0)}");
+        if(lockNumber != -1) lock.lockFinish[lockNumber] = true;
       }).catchError((error) {
         print(error);
-      });
-      
+      });      
+      print("beingAttack function end");
   }
 
   @override
